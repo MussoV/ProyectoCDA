@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción</title>
+</head>
+<body>
+    <h1>Selecciona una región para predecir</h1>
+    <p>{{ mensaje_carga }}</p>
+    <form method="post">
+        <label for="region">Región:</label>
+        <select name="region" id="region" required>
+            {% for region in regiones %}
+                <option value="{{ region }}">{{ region }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Predecir</button>
+    </form>
+</body>
+</html>
