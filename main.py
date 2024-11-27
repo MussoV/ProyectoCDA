@@ -1,17 +1,13 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 import pandas as pd
-import joblib
 import os
+import procesamiento as pp
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-# Cargar modelo entrenado
-modelo = joblib.load('models/modelo_svm.joblib')  # Ruta a tu modelo
-
-# Lista de regiones (ajustar según tu caso)
-# Lista de regiones proporcionadas
+# Lista de regiones
 regiones = [
     'ANTIOQUIA', 'ARAUCA', 'BAJO PUTUMAYO', 'BOGOTA - CUNDINAMARCA',
     'BOYACA', 'CALDAS', 'CALI - YUMBO - PUERTO TEJADA', 'CAQUETA',
@@ -21,7 +17,6 @@ regiones = [
     'QUINDIO', 'RUITOQUE', 'SANTANDER', 'TOLIMA', 'TULUA',
     'VALLE DEL CAUCA', 'VALLE DEL SIBUNDOY', 'SIN CLASIFICAR'
 ]
-  # 30 regiones, una por cada salida de la red
 
 # Página principal
 @app.route('/')
@@ -59,14 +54,16 @@ def predecir():
             mensaje_carga = "No se ha cargado ningún archivo CSV válido."
             return render_template('predecir.html', regiones=regiones, mensaje_carga=mensaje_carga)
 
-        # Leer el CSV y procesar
-        df = pd.read_csv(csv_path)
-        # Transformar datos y realizar predicción
-        # Ajustar según las transformaciones realizadas en el entrenamiento
-        predicciones = modelo.predict(df)  # `df` debe tener las columnas necesarias
-        prediccion_region = predicciones[int(region.split()[-1]) - 1]  # Selección según índice
+        #preprocesar
+        df = pp.procesar_csv(csv_path, region)
 
-        return render_template('resultado.html', region=region, prediccion=prediccion_region)
+        #Cargar el modelo
+        modelo = pp.cargar_modelo()
+
+        # predecir
+        predicciones = pp.predecir_consumo(df, modelo)
+
+        return render_template('resultado.html', region=region, prediccion=predicciones)
 
     return render_template('predecir.html', regiones=regiones, mensaje_carga=mensaje_carga)
 
