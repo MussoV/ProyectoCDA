@@ -18,6 +18,9 @@ regiones = [
     'VALLE DEL CAUCA', 'VALLE DEL SIBUNDOY', 'SIN CLASIFICAR'
 ]
 
+# Regiones que usan el modelo alternativo
+regiones_LNRS = ['ANTIOQUIA', 'ARAUCA']
+
 # Página principal
 @app.route('/')
 def index():
@@ -54,13 +57,16 @@ def predecir():
             mensaje_carga = "No se ha cargado ningún archivo CSV válido."
             return render_template('predecir.html', regiones=regiones, mensaje_carga=mensaje_carga)
 
-        #preprocesar
+        # Preprocesar
         df = pp.procesar_csv(csv_path, region)
 
-        #Cargar el modelo
-        modelo = pp.cargar_modelo()
+        # Seleccionar el modelo según la región
+        if region in regiones_LNRS:
+            modelo = pp.cargar_modelo('modelo_LNRS.pkl')  # Carga el modelo alternativo
+        else:
+            modelo = pp.cargar_modelo('modelo.pkl')  # Carga el modelo predeterminado
 
-        # predecir
+        # Predecir
         predicciones = pp.predecir_consumo(df, modelo)
 
         return render_template('resultado.html', region=region, prediccion=predicciones)
