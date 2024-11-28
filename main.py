@@ -22,10 +22,10 @@ app.config['ALLOWED_EXTENSIONS'] = {'csv'}  # Solo permitir archivos CSV
 
 # Lista de regiones
 regiones = [
-    'ANTIOQUIA', 'BOGOTA - CUNDINAMARCA',
-    'BOYACA', 'CALI - YUMBO - PUERTO TEJADA',
-    'CARIBE MAR', 'CARIBE SOL', 'META',
-    'NORTE DE SANTANDER', 'SANTANDER',
+    'ANTIOQUIA', 'ARAUCA', 'BOGOTA - CUNDINAMARCA',
+    'BOYACA', 'CALDAS', 'CALI - YUMBO - PUERTO TEJADA',
+    'CARIBE MAR', 'CARIBE SOL', 'CAUCA','HUILA','META',
+    'NORTE DE SANTANDER', 'SANTANDER', 'TOLIMA',
     'VALLE DEL CAUCA'
 ]
 
