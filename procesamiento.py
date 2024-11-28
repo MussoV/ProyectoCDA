@@ -49,6 +49,8 @@ def crear_matriz_modelo(df):
     # Crear una lista para almacenar cada fila de la matriz final
     matriz_final = []
 
+    fechas =[]
+
     # Iteramos sobre el DataFrame para extraer ventanas de 60 días
     for i in range(len(df) - 60 + 1):
 
@@ -67,8 +69,12 @@ def crear_matriz_modelo(df):
         # Crear las fechas de los siguientes 30 días
         fechas_30_dias = pd.date_range(start=ultima_fecha, periods=30, freq='D')
 
+        # Guardar las fechas
+        fechas.append(fechas_30_dias.tolist())
+
         #procesar las fechas
         fechas_30_dias = procesar_fechas(pd.DataFrame({'Date': fechas_30_dias}))
+
 
         # Añadir las columnas de festivo y día de la semana
         for j in range(30):
@@ -81,7 +87,8 @@ def crear_matriz_modelo(df):
     # Convertimos la lista de filas en un DataFrame final
     matriz_dias_df = pd.DataFrame(matriz_final)
 
-    return matriz_dias_df
+    return matriz_dias_df, fechas
+
 
 def procesar_csv(csv_path, region):
 
@@ -124,16 +131,16 @@ def procesar_csv(csv_path, region):
 def predecir_consumo(df, modelo):
 
     #Crear la matriz para el modelo
-    matriz_dias_df = crear_matriz_modelo(df)
+    matriz_dias_df, fechas = crear_matriz_modelo(df)
 
     #Realizar la predicción
     predicciones = modelo.predict(matriz_dias_df)
 
-    return predicciones
+    return predicciones, fechas
 
-def cargar_modelo():
+def cargar_modelo(path_modelo):
     #Cargar el modelo
-    modelCNN_loaded = load_model('models/modelo_cnn.h5', custom_objects={'mae': MeanAbsoluteError()})
+    modelCNN_loaded = load_model(path_modelo, custom_objects={'mae': MeanAbsoluteError()})
 
     return modelCNN_loaded
 
