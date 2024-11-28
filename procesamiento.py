@@ -127,6 +127,39 @@ def procesar_csv(csv_path, region):
 
     return df
 
+def procesar_dataframe(df, region):
+
+    #Definir las columnas de las horas
+    horas = [f'Values_Hour{i:02d}' for i in range(1, 25)]
+
+    #Filtrar por la región seleccionada
+    df = df[df['Values_code'] == region]
+
+    #Eliminar columnas innecesarias
+    df = df.drop(columns=['Id', 'Values_code', 'Values_MarketType'])
+
+    #Arreglar el formato de las fechas
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    #Reemplazar los valores nulos por 0
+    df = df.fillna(0)
+
+    #Sumar las horas
+    df['Total'] = df[horas].sum(axis=1)
+
+    #Eliminar las columnas de las horas
+    df = df.drop(columns=horas)
+
+    #Agrupar por fecha
+    df = df.groupby('Date').sum().reset_index()
+
+    #Ordenar por fecha
+    df = df.sort_values('Date').reset_index(drop=True)
+
+    #Procesar las fechas
+    df = procesar_fechas(df)
+
+    return df
 
 def predecir_consumo(df, modelo):
 

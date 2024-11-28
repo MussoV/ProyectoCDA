@@ -8,6 +8,9 @@ import io
 from werkzeug.utils import secure_filename
 import procesamiento as pp
 from io import BytesIO
+from pydataxm import *
+import requests
+import datetime as dt
 
 # Crear una instancia de Flask
 app = Flask(__name__)
@@ -19,13 +22,11 @@ app.config['ALLOWED_EXTENSIONS'] = {'csv'}  # Solo permitir archivos CSV
 
 # Lista de regiones
 regiones = [
-    'ANTIOQUIA', 'ARAUCA', 'BAJO PUTUMAYO', 'BOGOTA - CUNDINAMARCA',
-    'BOYACA', 'CALDAS', 'CALI - YUMBO - PUERTO TEJADA', 'CAQUETA',
-    'CARIBE MAR', 'CARIBE SOL', 'CARTAGO', 'CASANARE', 'CAUCA',
-    'CHOCO', 'GUAVIARE', 'HUILA', 'META', 'NARIÑO',
-    'NORTE DE SANTANDER', 'PEREIRA', 'POPAYAN - PURACE', 'PUTUMAYO',
-    'QUINDIO', 'RUITOQUE', 'SANTANDER', 'TOLIMA', 'TULUA',
-    'VALLE DEL CAUCA', 'VALLE DEL SIBUNDOY', 'SIN CLASIFICAR'
+    'ANTIOQUIA', 'BOGOTA - CUNDINAMARCA',
+    'BOYACA', 'CALI - YUMBO - PUERTO TEJADA',
+    'CARIBE MAR', 'CARIBE SOL', 'META',
+    'NORTE DE SANTANDER', 'SANTANDER',
+    'VALLE DEL CAUCA'
 ]
 
 # Función para verificar que el archivo es del tipo correcto
@@ -41,20 +42,6 @@ def index():
 # Ruta para cargar CSV
 @app.route('/cargar', methods=['POST'])
 def cargar_csv():
-    if 'file' not in request.files:
-        session['csv_cargado'] = False
-        return redirect(url_for('index'))
-
-    file = request.files['file']
-    if file.filename == '':
-        session['csv_cargado'] = False
-        return redirect(url_for('index'))
-
-    # Guardar el archivo
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(file_path)
-    session['csv_path'] = file_path
-    session['csv_cargado'] = True
     return redirect(url_for('index'))
 
 # Página de predicción
@@ -102,7 +89,46 @@ def predecir():
         # Guardar en la sesión
         session['predicciones_combinadas'] = predicciones_combinadas
 
-        print(predicciones_combinadas)
+    return render_template('resultado.html', region=region)
+
+# Ruta para predecir usandolos ultimos días de xm
+@app.route('/predecirXM', methods=['POST'])
+def predecirxm():
+    region = request.args.get('region', 'Región no especificada')
+
+    objetoAPI = pydataxm.ReadDB()
+
+    df_demanda_xm = objetoAPI.request_data(
+        "DemaComeNoReg",
+        "CIIU",
+        (dt.datetime.now() - dt.timedelta(days=60)).date(),  # Convierte a datetime y luego a date
+        (dt.datetime.now() - dt.timedelta(days=1)).date(),  # Convierte a datetime y luego a date
+    )
+
+    df = pd.DataFrame(df_demanda_xm)
+
+    # Cargar el modelo
+    path_modelo = f'models/{region}.h5'
+    modelo = pp.cargar_modelo(path_modelo)
+
+    # Procesar el CSV
+    df = pp.procesar_dataframe(df, region)
+
+    # Predecir
+    predicciones, fechas = pp.predecir_consumo(df, modelo)
+
+    # Guardar las predicciones y fechas en la sesión
+    session['predicciones'] = predicciones.tolist()
+    session['fechas'] = fechas
+
+    predicciones_combinadas = []
+
+    for i in range(len(fechas)):
+        for fecha, pred in zip(fechas[i], predicciones[i]):
+            predicciones_combinadas.append((str(fecha.date()), float(pred)))
+
+    # Guardar en la sesión
+    session['predicciones_combinadas'] = predicciones_combinadas
 
     return render_template('resultado.html', region=region)
 
