@@ -47,23 +47,41 @@ Este resultado de la predicción se puede visualizar directamente en la aplicaci
 ## Estructura del proyecto
 
 ├── README.md
+
 ├── __pychache__/
+
 ├── data/
+
 ├── models/
+
 ├── static/
+
 │   ├── images
+
 │   └── metrics
+
 ├── templates/
+
 ├── uploads/
+
 ├── .gitignore
+
 ├── 1ra Entrega Proyecto CDA.pdf
+
 ├── 2da Entrega Proyecto CDA.pdf
+
 ├── LimpiezaYEntendimiento.ipynb
+
 ├── Modelos.ipynb
+
 ├── Prueba.ipynb
+
 ├── main.py
+
 ├── procesamiento.py
+
 ├── regiones.txt
+
 └── requirements.txt
 
 ## Requerimientos
