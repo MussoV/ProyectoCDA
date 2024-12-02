@@ -44,6 +44,28 @@ Se realizó la búsqueda de tres diferentes modelos, (**MLP, CNN y LSTM**), dond
 
 Este resultado de la predicción se puede visualizar directamente en la aplicación, o se puede descargar un archivo con extensión .xlsx donde se entrega la fecha y el valor en **Gwh** para poder ser utilizada a futuro por quien lo desee.
 
+## Estructura del proyecto
+
+├── README.md
+├── __pychache__/
+├── data/
+├── models/
+├── static/
+│   ├── images
+│   └── metrics
+├── templates/
+├── uploads/
+├── .gitignore
+├── 1ra Entrega Proyecto CDA.pdf
+├── 2da Entrega Proyecto CDA.pdf
+├── LimpiezaYEntendimiento.ipynb
+├── Modelos.ipynb
+├── Prueba.ipynb
+├── main.py
+├── procesamiento.py
+├── regiones.txt
+└── requirements.txt
+
 ## Requerimientos
 El archivo `requirements.txt` especifica las librerías necesarias para ejecutar el proyecto. Este archivo se encuentra ubicado en la siguiente ruta:
 
@@ -144,23 +166,22 @@ Python 3.10.11 o superior
 6. Seleccionar alguna región para utilizar su modelo.
 7. Agregar un archivo en formato .csv con la información de 60 días previos al periodo de tiempo de un mes que se desea estimar. (En la carpeta uploads se encuentra un archivo de ejemplo para utilizar con cualquier modelo)
 
-**Nota:** La ejecución de los modelos del paso **3** se puede demorar dado que son 87 en total por los tres tipos de modelos a calcular para conocer el mejor. Se recomienda omitir este paso para una revisión rápida. Si se desea ejecutar una prueba del calculo del mejor modelo de una región en específico, dirigirse a la sección [Pruebas Automatizadas](#pruebas-automatizadas) para realizarlo.
+**Nota 1:** La ejecución de los modelos del paso **3** se puede demorar dado que son 87 en total por los tres tipos de modelos a calcular para conocer el mejor. Se recomienda omitir este paso para una revisión rápida. Si se desea ejecutar una prueba del calculo del mejor modelo de una región en específico, dirigirse a la sección [Pruebas Automatizadas](#pruebas-automatizadas) para realizarlo.
+
+**Nota 2:** En el siguiente [vídeo](https://uniandes.sharepoint.com/:v:/s/CDA-MinEnergia-Estudiantes/EXzCNz6NkrJJo3eO-EL0UWcBjWzdXWbXpWxWc1f-nEErTQ?e=ud0fE9&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D) se encuentra una demostración de la funcionalidad de la aplicación.
 
 ## Pruebas Automatizadas
 
+Para la ejecución de una prueba es necesario abrir el archivo "Prueba.ipynb", donde se debe modificar el valor del apuntador del arreglo "top_ciudades[]" en la sección **2.3** del código, dando un indicador entre 0 y 29, según el orden que aparece en la celda anterior para definir una ciduad.
 
+Al final del archivo, en la sección 4, se encuentran las pruebas A/B para la selección del mejor modelo entre los tres entrenados, junto con la visualización de la prueba de comparación entre los valores reales contra los predecidos.
 
 ## Conclusiones
 
-1. Las regiones con mayor consumo medio de energía son Bogotá y Cundinamarca, con aproximadamente 21.9 millones de kWh, seguidas de Antioquia con 14.7 millones de kWh.
-2. Otras regiones con consumo notable incluyen el Caribe Mar y el Caribe Sol, ambos superando los 13 millones de kWh.
-3. Las regiones de Bajo Putumayo y Popayán - Puracé presentan los consumos medios más bajos, con menos de 100,000 kWh.
-4. La variabilidad en el consumo de energía es considerable, siendo Bogotá y Cundinamarca las que muestran la mayor desviación estándar, lo que indica una fluctuación significativa en su demanda. En contraste, regiones como Chocó y Guaviare presentan un consumo más estable, con desviaciones estándar menores.
-5. Las regiones sin clasificar tienen un consumo significativamente bajo, sugiriendo que los datos de estas áreas pueden no estar completamente representados o que la actividad económica es mínima.
-6. Los sectores con mayor consumo de energía son predominantemente industriales, como las industrias manufactureras y la explotación de minas y canteras.
-7. Sectores como el comercio al por mayor y al por menor, así como el transporte y almacenamiento, presentan un consumo energético moderado.
-8. Las actividades artísticas y otras actividades de bajo impacto muestran un consumo de energía significativamente menor.
-9. Los sectores con altos niveles de consumo de energía también presentan una gran variabilidad, indicando diferencias significativas en las prácticas operativas.
-10. Los días “No Festivos” muestran una demanda más alta y variabilidad en comparación con los días “Festivos y Domingos”.
-11. Los “Domingos y Festivos” tienen demandas promedio similares, lo que sugiere un patrón de consumo similar en esos días.
-12. Es recomendable considerar la variabilidad en la demanda, especialmente en días “No Festivos”, para el análisis y la planificación futura de la oferta de energía. 
+- Utilizar un modelo por cada mercado de comercialización mejora notablemente el desempeño de las predicciones en comparación a un único modelo general.
+- Se observó que la demanda energética presenta patrones similares de consumo de manera semanal en la mayoría de los mercados de comercialización.
+- Se presenta alta variabilidad en la demanda energética diaria y baja estacionalidad semanal en los mercados de comercialización cuyas actividades económicas principales corresponden a explotación de petróleo, gas, carbón y minerales (Caribe sol, Caribe mar, Boyacá y Meta).
+- El uso de variables exógenas que presentan variaciones significativas en granularidades mensuales y/o anuales, no son relevantes en modelos predictivos con intervalos de tiempo a corto plazo y que presentan granularidades más bajas.
+- Se propone evaluar el uso de variables exógenas con alta variabilidad y granularidades diarias y/o semanales para mejorar el desempeño de las predicciones de la demanda energética en algunos mercados de comercialización (precio producción energía, precio producción de gas, precio del dólar y precio del petróleo).
+- En un contexto comercial es importante evaluar el modelo desde las métricas de negocio que reflejan el impacto real y la efectividad de este en los objetivos comerciales, y no solo desde las métricas del modelo que miden su precisión y rendimiento técnico, puesto que, se corre el riesgo de que el modelo sea matemáticamente sólido, pero no útil para las decisiones estratégicas del negocio.
+- Recibir retroalimentación constante de los stakeholders en el desarrollo de un modelo de ML es clave para asegurar que el modelo cumpla con los objetivos del negocio, se ajuste a sus necesidades y sea práctico en su implementación, mejorando así su efectividad y adopción.
