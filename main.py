@@ -22,12 +22,14 @@ app.config['ALLOWED_EXTENSIONS'] = {'csv'}  # Solo permitir archivos CSV
 
 # Lista de regiones
 regiones = [
-    'ANTIOQUIA', 'ARAUCA', 'BOGOTA - CUNDINAMARCA',
-    'BOYACA', 'CALDAS', 'CALI - YUMBO - PUERTO TEJADA',
-    'CARIBE MAR', 'CARIBE SOL', 'CAUCA','HUILA','META',
-    'NORTE DE SANTANDER', 'SANTANDER', 'TOLIMA',
-    'VALLE DEL CAUCA'
-]
+        'ANTIOQUIA', 'ARAUCA', 'BAJO PUTUMAYO', 'BOGOTA - CUNDINAMARCA',
+        'BOYACA', 'CALDAS', 'CALI - YUMBO - PUERTO TEJADA', 'CAQUETA',
+        'CARIBE MAR', 'CARIBE SOL', 'CARTAGO', 'CASANARE', 'CAUCA',
+        'CHOCO', 'GUAVIARE', 'HUILA', 'META', 'NARIÑO',
+        'NORTE DE SANTANDER', 'PEREIRA', 'POPAYAN - PURACE', 'PUTUMAYO',
+        'QUINDIO', 'RUITOQUE', 'SANTANDER', 'TOLIMA', 'TULUA',
+        'VALLE DEL CAUCA', 'VALLE DEL SIBUNDOY', 'SIN CLASIFICAR'
+    ]
 
 # Función para verificar que el archivo es del tipo correcto
 def allowed_file(filename):
@@ -79,6 +81,7 @@ def predecir():
         # Guardar las predicciones y fechas en la sesión
         session['predicciones'] = predicciones.tolist()
         session['fechas'] = fechas
+        session['region'] = region
 
         predicciones_combinadas = []
 
@@ -99,10 +102,10 @@ def predecirxm():
     objetoAPI = pydataxm.ReadDB()
 
     df_demanda_xm = objetoAPI.request_data(
-        "DemaComeNoReg",
-        "CIIU",
-        (dt.datetime.now() - dt.timedelta(days=60)).date(),  # Convierte a datetime y luego a date
-        (dt.datetime.now() - dt.timedelta(days=1)).date(),  # Convierte a datetime y luego a date
+        "DemaCome",
+        "MercadoComercializacion",
+        (dt.datetime.now() - dt.timedelta(days=60)).date(),
+        (dt.datetime.now() - dt.timedelta(days=1)).date(),
     )
 
     df = pd.DataFrame(df_demanda_xm)
@@ -167,6 +170,56 @@ def descargar_excel():
 
     # Usar send_file con el archivo en formato binario
     return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name='predicciones.xlsx')
+
+@app.route('/descargar_csv_xm')
+def descargar_csv_xm():
+    predicciones = session.get('predicciones', [])
+    fechas = session.get('fechas', [])
+    region = session.get('region', 'Región no especificada')
+
+    if not predicciones or not fechas:
+        return "No hay predicciones o fechas para descargar.", 400
+
+    # Convertir las listas de listas en un DataFrame
+    data = []
+
+    # Recorrer las listas de fechas y predicciones
+    for i in range(len(fechas)):
+        # Emparejar las fechas con las predicciones correspondientes
+        for fecha, pred in zip(fechas[i], predicciones[i]):
+            data.append({
+                'Predicción': pred,
+                'Fecha': fecha
+            })
+
+    # Crear el DataFrame
+    df = pd.DataFrame(data)
+
+    # Convertir la fecha a formato de fecha
+    df['Fecha'] = df['Fecha'].dt.tz_localize(None).dt.date
+
+    # Renombrar 'Predicción' por 'Values_Hour24'
+    df = df.rename(columns={'Predicción': 'Values_Hour24'})
+
+    # Renombrar 'Fecha' por 'Date'
+    df = df.rename(columns={'Fecha': 'Date'})
+
+    # Agregar columnas al inicio: Id,Values_code,Values_MarketType,Values_Hour01, ..., Values_Hour23
+    df.insert(0, 'Id', 'MercadoComercializacion')
+    df.insert(1, 'Values_code', region)
+    df.insert(2, 'Values_MarketType', 'NA')
+
+    for i in range(1, 24):
+        df.insert(i + 2, f'Values_Hour{i:02d}', 0.00)
+
+    # Crear el archivo CSV en memoria
+    output = BytesIO()
+    df.to_csv(output, index=False)
+
+    output.seek(0)
+
+    # Usar send_file con el archivo en formato binario
+    return send_file(output, mimetype='text/csv', as_attachment=True, download_name='predicciones.csv')
 
 if __name__ == '__main__':
     # Asegurarse de que la carpeta de uploads exista
